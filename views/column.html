@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  {{ include './sect/css.html'}}
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+
+        <!-- 头部 -->
+        {{ include '/sect/top.html'}}
+        <!-- 左边 -->
+        {{ include '/sect/left.html'}}
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+                <div style="padding: 15px;">
+                    <div class="layui-form">
+                        <table class="layui-table">
+                          <colgroup>
+                            <col width="150">
+                            <col width="150">
+                            <col width="200">
+                            <col>
+                          </colgroup>
+                          <thead>
+                            <tr>
+                              <th>人物</th>
+                              <th>民族</th>
+                              <th>出场时间</th>
+                              <th>格言</th>
+                            </tr> 
+                          </thead>
+                          <tbody id="tbody">
+
+                          </tbody>
+                        </table>
+                        </div>
+        </div>
+            <!-- 底部 -->
+        {{ include '/sect/bottom.html'}}
+        
+  
+</div>
+</body>
+<script src="/public/layui/layui.js"></script>
+<script src="/public/js/jquery.js"></script>
+<script src="/public/js/moment.js"></script>
+<script src="/public/js/until.js"></script>
+<script>
+  function renderTable(data){
+    let tbodtHtml =``;
+    data.forEach((item,index)=>{
+      let{name,sort,add_data,cat_id}=item;
+      add_date = util.data_format(add_date,'YYYY-MM-DD')
+      tbodtHtml += `
+      <tr>
+        <td>${index +1}</td>
+        <td>${name}</td>
+        <td>${sort}</td>
+        <td>${add_date}</td>
+        <td>
+          <div class = "layui-btn-group">
+            <button title ="编辑" type="buttom" class="layui-btn"><i i class ='layui-icon'></i></buttom>
+            <button title ="编辑" cat_id='${car_id}'type="buttom" class="layui-btn layui-btn-danger del"><i class ='layui-icon'></i></buttom>
+              </div>
+              </td>
+              </tr>  `;
+              // 数据赋值给id=tbody元素
+              $('#tbody').html(tbodtHtml)
+            })
+    
+  }
+  function initCatData(){
+    $.ajax({
+      url:'/getCate',
+      // JSON 是存储和交换文本信息的语法
+      dataType:'json'
+    }).then(res=>{
+    // 动态的创建tr，追加到tbody下面
+      renderTable(res)
+    })
+  }
+  // 获取发送的ajax请求
+  initCateData()
+
+    // layui的代码 
+  // layui会自动把layui变为全局
+    layui.use(['layui,element'],function(){
+    })
+
+    // ajax删除 因为元素是动态新增，所以需要委托绑定
+
+    $('tbody').on('click','.del',function(){
+      // 当前点击对象的保存
+      let _this =$(this);
+      let cat_id= $(this).attr('cat_id')
+      // 获取自定义的分类id
+      layer.confirm('是否删除',{
+        // 按钮
+        btn:['是','否']
+      },
+      function(){
+        // ajax请求进行删除
+        $.ajax请求({
+          type:'post',
+          url:"delCat",
+          data:{cat_id},
+          dataType:"json"
+        }).then(res=>{
+          let{errcode,message} =res;
+          if(errcode ==0){
+            _this.parents('tr').remove();
+            // 关闭确认框，移除tr
+            // 关闭所有底层
+            layui.closeAll();
+            // 找到每一个tr中的第一个td重新编号
+            $.each($('#tbody tr').find('td:eq(0)'),function(index,ele){
+              $(ele).html(index+1)
+            })
+            // layui弹框
+            layui.msg(message)
+          }
+        }).catch(err=>{
+          lalyer.closeAll();//关闭所有底层
+        })
+      })
+  })
+</script>
+
+</html>
